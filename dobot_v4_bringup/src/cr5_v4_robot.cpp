@@ -40,7 +40,7 @@ void CRRobot::init()
 
     int numRobotNodes = control_nh_.param("num_nodes", 1);
     std::string serviceRobotName{ "" };
-    std::string serviceProjectName{ "/dobot_v4_bringup/" };
+    std::string serviceProjectName{ "dobot_v4_bringup/" };
     if (numRobotNodes > 1) {
         serviceRobotName = control_nh_.param<std::string>("robot_node_name", "robot");
         serviceRobotName = serviceRobotName + "/";

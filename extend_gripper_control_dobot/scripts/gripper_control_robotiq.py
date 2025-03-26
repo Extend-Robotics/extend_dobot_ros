@@ -11,18 +11,9 @@ from std_msgs.msg import Header
 import dobot_v4_bringup.srv
 import time
 import gripper_global_variables
+import os
 
 from dobot_v4_bringup.srv import ModbusCreateRequest, SetHoldRegsRequest, ClearErrorRequest, EnableRobotRequest
-
-#Creating the ros node and service client
-rospy.init_node("robotiq_gripper")
-rospy.wait_for_service("/dobot_v4_bringup/srv/ModbusCreate")
-rospy.wait_for_service("/dobot_v4_bringup/srv/SetHoldRegs")
-rospy.wait_for_service("/dobot_v4_bringup/srv/ClearError")
-rospy.wait_for_service("/dobot_v4_bringup/srv/EnableRobot")
-
-initialization = True
-prevValue = 0
 
 def initialize():
     #Initialize the Modbus service and the response publisher
@@ -35,7 +26,7 @@ def dataCallback(msg):
     gripper_value = 255 * msg.gripperAnalog.data
 
     if(gripper_global_variables.gripper_data_count == 5):
-        gripper_modbus_service = rospy.ServiceProxy("/dobot_v4_bringup/srv/SetHoldRegs", dobot_v4_bringup.srv.SetHoldRegs)
+        gripper_modbus_service = rospy.ServiceProxy(setHoldRegServiceName, dobot_v4_bringup.srv.SetHoldRegs)
         gripper_modbus_data = SetHoldRegsRequest()
         gripper_modbus_data.index = 0
         gripper_modbus_data.addr = 1000   # Register Adress 03E8
@@ -66,12 +57,12 @@ def dataCallback(msg):
 
 def EnableRobot():
     time.sleep(2)
-    clear_error_service = rospy.ServiceProxy("/dobot_v4_bringup/srv/ClearError", dobot_v4_bringup.srv.ClearError)
+    clear_error_service = rospy.ServiceProxy(clearErrorServiceName, dobot_v4_bringup.srv.ClearError)
 
     clear_error_response = clear_error_service()
     if(clear_error_response.res == 0):
         time.sleep(2)
-        enable_robot_service = rospy.ServiceProxy("/dobot_v4_bringup/srv/EnableRobot", dobot_v4_bringup.srv.EnableRobot)
+        enable_robot_service = rospy.ServiceProxy(enableRobotServiceName, dobot_v4_bringup.srv.EnableRobot)
         enable_robot_response = enable_robot_service()
         if (enable_robot_response.res != 0):
             EnableRobot()
@@ -86,10 +77,28 @@ def InitializeGlobalVariables():
 
 
 if __name__ == '__main__':
+
+    #Creating the ros node and service client
+    rospy.init_node("robotiq_gripper")
+    nameSpace = os.environ['ROS_NAMESPACE'].split("/")[1]
+    dobotType = os.environ['dobotType']+"_robot"
+
+    clearErrorServiceName = "/" + nameSpace + "/" + dobotType + "/dobot_v4_bringup/srv/ClearError"
+    enableRobotServiceName = "/" + nameSpace + "/" + dobotType + "/dobot_v4_bringup/srv/EnableRobot"
+    modbusCreateServiceName = "/" + nameSpace + "/" + dobotType + "/dobot_v4_bringup/srv/ModbusCreate"
+    setHoldRegServiceName = "/" + nameSpace + "/" + dobotType + "/dobot_v4_bringup/srv/SetHoldRegs"
+
+
+    rospy.wait_for_service(clearErrorServiceName)
+    rospy.wait_for_service(enableRobotServiceName)
+    rospy.wait_for_service(modbusCreateServiceName)
+    rospy.wait_for_service(setHoldRegServiceName)
+
+
     InitializeGlobalVariables()
     (pubGripperCommandRepublisher,pubGripperResponse) = initialize()  
     #Configure the modbus
-    modbus_create_service = rospy.ServiceProxy("/dobot_v4_bringup/srv/ModbusCreate", dobot_v4_bringup.srv.ModbusCreate)
+    modbus_create_service = rospy.ServiceProxy(modbusCreateServiceName, dobot_v4_bringup.srv.ModbusCreate)
     modbus_config = ModbusCreateRequest()
     modbus_config.ip = "127.0.0.1"  #IP of the gripper
     modbus_config.port = 60000  #Gripper Connection Port
@@ -98,7 +107,7 @@ if __name__ == '__main__':
     modbus_create_service(modbus_config)
 
     #Activate Gripper step 1: Set the registers from address 03E8 to {0,0,0}
-    gripper_modbus_service = rospy.ServiceProxy("/dobot_v4_bringup/srv/SetHoldRegs", dobot_v4_bringup.srv.SetHoldRegs)
+    gripper_modbus_service = rospy.ServiceProxy(setHoldRegServiceName, dobot_v4_bringup.srv.SetHoldRegs)
     gripper_modbus_data = SetHoldRegsRequest()
     gripper_modbus_data.index = 0
     gripper_modbus_data.addr = 1000
@@ -120,5 +129,5 @@ if __name__ == '__main__':
 
     EnableRobot()
     #Subscribe to Digital Gripper Data Stream from Unity
-    rospy.Subscriber("/extend_gripper_command", GripperControl, dataCallback, queue_size=1)
+    rospy.Subscriber("extend_gripper_command", GripperControl, dataCallback, queue_size=1)
     rospy.spin()

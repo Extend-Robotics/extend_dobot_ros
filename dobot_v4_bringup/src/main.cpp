@@ -33,15 +33,17 @@ int main(int argc, char* argv[])
         async_spinner.start();
 
         sensor_msgs::JointState joint_state_msg;
-        ros::Publisher joint_state_pub = private_node.advertise<sensor_msgs::JointState>("/joint_states", 100);
+        ros::Publisher joint_state_pub = private_node.advertise<sensor_msgs::JointState>("joint_states", 100);
         dobot_v4_bringup::RobotStatus robot_status_msg;
-        ros::Publisher robot_status_pub = private_node.advertise<dobot_v4_bringup::RobotStatus>("/dobot_v4_bringup/msg/RobotStatus", 100);
+        ros::Publisher robot_status_pub = private_node.advertise<dobot_v4_bringup::RobotStatus>("dobot_v4_bringup/msg/RobotStatus", 100);
 
         dobot_v4_bringup::ToolVectorActual tool_vector_actual_msg;
         ros::Publisher tool_vector_pub =
-            private_node.advertise<dobot_v4_bringup::ToolVectorActual>("/dobot_v4_bringup/msg/ToolVectorActual", 100);
-        string z ="/";
-        const char* robot_type = getenv("DOBOT_TYPE");
+            private_node.advertise<dobot_v4_bringup::ToolVectorActual>("dobot_v4_bringup/msg/ToolVectorActual", 100);
+        const char* name_space = getenv("ROS_NAMESPACE");
+        string ns = name_space == nullptr ? "" : name_space;
+        string z ="/" + ns + "/";
+        const char* robot_type = getenv("dobotType");
         string a = robot_type == nullptr ? "cr5" : robot_type;
         string b = "_robot/joint_controller/follow_joint_trajectory";
         string ss =  z + a + b ;

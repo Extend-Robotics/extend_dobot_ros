@@ -284,6 +284,31 @@ target_link_libraries(${PROJECT_NAME}
 #   PATTERN ".svn" EXCLUDE
 # )
 
+
+
+set(PYTHON_COMPILE_ALL "python3" "-m" "compileall" "-b")
+
+if( $ENV{ROS_PYTHON_VERSION} STREQUAL "2")
+  set(PYTHON_COMPILE_ALL "python" "-m" "compileall")
+endif()
+
+add_custom_command(
+  OUTPUT PROGRAMS "scripts/RobotInitialization.pyc"
+  DEPENDS "scripts/RobotInitialization.py"
+  COMMAND ${PYTHON_COMPILE_ALL} scripts
+  COMMAND chmod +x "scripts/RobotInitialization.pyc"
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  COMMENT "Compiling python scripts"
+)
+
+add_custom_target(${PROJECT_NAME}_compiled_python ALL DEPENDS "scripts/RobotInitialization.pyc" )
+
+install(PROGRAMS scripts/RobotInitialization.pyc
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+## Add folders to be run by python nosetests
+# catkin_add_nosetests(test)
+
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
@@ -291,10 +316,6 @@ install(TARGETS ${PROJECT_NAME}
 install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(PROGRAMS scripts/compiled_programs/RobotInitialization.pyc
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
 
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
