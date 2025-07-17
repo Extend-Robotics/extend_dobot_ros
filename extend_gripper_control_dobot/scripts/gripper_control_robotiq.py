@@ -10,7 +10,7 @@ from extend_msgs.msg import GripperControl, GripperResponse
 from std_msgs.msg import Header
 import dobot_v4_bringup.srv
 import time
-import gripper_global_variables
+from extend_gripper_control_dobot.gripper_global_variables import gripper_global_variables
 import os
 
 from dobot_v4_bringup.srv import ModbusCreateRequest, SetHoldRegsRequest, ClearErrorRequest, EnableRobotRequest
