@@ -16,7 +16,7 @@ find_package(catkin REQUIRED)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -198,25 +198,9 @@ include_directories(
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
-set(PYTHON_COMPILE_ALL "python3" "-m" "compileall" "-b")
-
-if( $ENV{ROS_PYTHON_VERSION} STREQUAL "2")
-  set(PYTHON_COMPILE_ALL "python" "-m" "compileall")
-endif()
-
-add_custom_command(
-  OUTPUT PROGRAMS "scripts/gripper_control_robotiq.pyc" "scripts/gripper_global_variables.pyc"
-  DEPENDS "scripts/gripper_control_robotiq.py" "scripts/gripper_global_variables.py"
-  COMMAND ${PYTHON_COMPILE_ALL} scripts
-  COMMAND chmod +x "scripts/gripper_control_robotiq.pyc" "scripts/gripper_global_variables.pyc"
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  COMMENT "Compiling python scripts"
-)
-
-add_custom_target(${PROJECT_NAME}_compiled_python ALL DEPENDS "scripts/gripper_control_robotiq.pyc" "scripts/gripper_global_variables.pyc")
-
-install(PROGRAMS scripts/gripper_control_robotiq.pyc scripts/gripper_global_variables.pyc
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+catkin_install_python(PROGRAMS
+                      scripts/gripper_control_robotiq.py
+                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
