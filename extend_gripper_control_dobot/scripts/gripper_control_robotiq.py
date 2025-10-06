@@ -23,7 +23,7 @@ def initialize():
 
 def dataCallback(msg):
     # Remaping Range [0,1] to [0,255]
-    gripper_value = 255 * msg.gripperAnalog.data
+    gripper_value = 255 * msg.gripper_analog.data
 
     if(gripper_global_variables.gripper_data_count == 5):
         gripper_modbus_service = rospy.ServiceProxy(setHoldRegServiceName, dobot_v4_bringup.srv.SetHoldRegs)
